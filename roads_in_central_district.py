@@ -13,107 +13,27 @@ import osmnx as ox
 import numpy as np
 
 
-# In[2]:
 
 
 roads_central_district_with_intensity_and_noise = pd.read_csv('data/roads_central_district_with_intensivity.csv', sep = ";", encoding = 'utf-8')
 
-
-# In[3]:
-
-
-roads_central_district_with_intensity_and_noise
-
-
-# In[4]:
-
-
 emissons = pd.read_csv('data/emissions.csv', sep = ";", encoding = 'utf-8')
-
-
-# In[5]:
-
 
 roads_central_district_with_intensity_and_noise_and_emission = roads_central_district_with_intensity_and_noise.merge(emissons, on='linkId')
 
-
-# In[6]:
-
-
-roads_central_district_with_intensity_and_noise_and_emission
-
-
-# In[7]:
-
-
 roads_central_district_with_intensity_and_noise_and_emission = gpd.GeoDataFrame(roads_central_district_with_intensity_and_noise_and_emission, geometry=roads_central_district_with_intensity_and_noise_and_emission.apply(lambda x: shapely.wkt.loads(x['wkt_geom']),axis = 1))
-
-
-# In[8]:
-
-
-roads_central_district_with_intensity_and_noise_and_emission.to_file('data/roads_central_district_with_intensity_and_noise_and_emission.geojson', driver = 'GeoJSON')
-
-
-# In[9]:
-
-
-roads_central_district=gpd.read_file('data/roads_central_district_with_intensity_and_noise_and_emission.geojson').to_crs(3857)
-
-
-# In[10]:
-
-
-roads_central_district
-
-
-# In[11]:
-
-
-roads_buffered = gpd.read_file('data/roads_central_district_with_intensity_and_noise_and_emission.geojson').to_crs(3857)
-
-
-# In[12]:
-
 
 roads_buffered.geometry= roads_buffered.geometry.buffer(50)
 
-
-# In[13]:
-
-
-roads_buffered.to_file('data/roads_buffered.geojson',driver = 'GeoJSON')
-
-
-# roads_buffered
-
-# In[14]:
-
-
 buildings=gpd.read_file('data/building_in_central_district.geojson').to_crs(3857)
 
-
-# In[15]:
-
-
-buildings
-
-
-# In[16]:
-
-
 buildings=buildings.to_crs(3857)
-
-
-# In[18]:
 
 
 poi=gpd.read_file('data/activities_in_roads_buffer_30.geojson').to_crs(3857)
 work=gpd.read_file('data/work_central.geojson').to_crs(3857)
 population=gpd.read_file('data/population_central.geojson').to_crs(3857)
 
-
-# In[19]:
 
 
 amount_of_population = []
@@ -126,9 +46,6 @@ for i in range(len(buildings)):
 print (amount_of_population)
 
 
-# In[20]:
-
-
 amount_of_work = []
 for i in range(len(buildings)):
     s = work.within(buildings['geometry'][i])
@@ -137,9 +54,6 @@ for i in range(len(buildings)):
     else:
         amount_of_work.append(0)
 print (amount_of_work)
-
-
-# In[21]:
 
 
 amount_of_poi = []
@@ -152,16 +66,10 @@ for i in range(len(buildings)):
 print (amount_of_poi)
 
 
-# In[22]:
-
-
 buildings['amount_of_work']=amount_of_work
 buildings['amount_of_population']=amount_of_population
 buildings['amount_of_poi']=amount_of_poi
 buildings['sum']=buildings['amount_of_poi']+buildings['amount_of_work']+buildings['amount_of_population']
-
-
-# In[23]:
 
 
 for index, row in buildings.iterrows():
@@ -175,9 +83,6 @@ for index, row in buildings.iterrows():
             buildings.loc[index, 'sum_of_point'] = 0
 
 
-# In[24]:
-
-
 amount_of_building = []
 for i in range(len(roads_buffered)):
     s = buildings.intersects(roads_buffered['geometry'][i])
@@ -189,10 +94,6 @@ for i in range(len(roads_buffered)):
 print (amount_of_building)
 
 
-# In[26]:
-
-
-#import sys
 amount_of_point_of_building = []
 for i in range(len(roads_buffered)):
     s = buildings.intersects(roads_buffered['geometry'][i])
@@ -203,56 +104,23 @@ for i in range(len(roads_buffered)):
             if j is True:
                 selected_building.append(i)
         
-        #selected_building = [item for item in s if item == True]
-        #print(selected_building)
-        acc_sum = 0
+                acc_sum = 0
         for i in selected_building:
             point = buildings.loc[i, 'sum_of_point']
-            #print(point)
-            acc_sum+=point
+                        acc_sum+=point
         amount_of_point_of_building.append(acc_sum)
-        #print(amount_of_building)
-        #sys.exit(0)
-        #a = len(selected_building)
-        #amount_of_building.append(a)
+        
     else:
         amount_of_point_of_building.append(0)
 print (amount_of_point_of_building)
 
 
-# In[27]:
-
-
 roads_central_district['amount_of_building']=amount_of_building
 roads_central_district['amount_of_point_of_building']=amount_of_point_of_building
 
-
-# In[28]:
-
-
 roads_central_district['point_for_mixed_used']=roads_central_district['amount_of_point_of_building']/roads_central_district['amount_of_building']
 
-
-# In[29]:
-
-
-roads_central_district
-
-
-# In[30]:
-
-
-activities=gpd.read_file('/Users/july/Desktop/Diplom_data_central_district_SPb/activities_in_roads_buffer_30.geojson').to_crs(3857)
-
-
-# In[31]:
-
-
-activities
-
-
-# In[32]:
-
+activities=gpd.read_file('data/activities_in_roads_buffer_30.geojson').to_crs(3857)
 
 amount_of_organisation = []
 for i in range(len(roads_buffered)):
@@ -264,90 +132,32 @@ for i in range(len(roads_buffered)):
         amount_of_organisation.append(0)
 print (amount_of_organisation)
 
-
-# In[33]:
-
-
 roads_central_district['amount_of_organisation']=amount_of_organisation
 
-
-# In[34]:
-
-
-roads_central_district
-
-
-# In[35]:
-
-
 roads_central_district['amount_of_open_organisation']=roads_central_district['amount_of_organisation']/roads_central_district['amount_of_building']
-
-
-# In[36]:
-
 
 roads_central_district['roads_buffered_50_area']=roads_buffered.area
 
 
-# In[37]:
-
-
-open_public_places=gpd.read_file('/Users/july/Desktop/Diplom_data_central_district_SPb/open public spaces central district.geojson').to_crs(3857)
-
-
-# In[38]:
-
-
-open_public_places
-
-
-# In[39]:
-
+open_public_places=gpd.read_file('data/open public spaces central district.geojson').to_crs(3857)
 
 open_public_places_buffered_400 = open_public_places.copy()
 
-
-# In[40]:
-
-
 open_public_places_buffered_400 = open_public_places_buffered_400.buffer(400)
-
-
-# In[41]:
-
 
 open_public_places_buffered_1000 = open_public_places.copy()
 
-
-# In[42]:
-
-
 open_public_places_buffered_1000 = open_public_places_buffered_1000.buffer(1000)
 
-
-# In[43]:
-
-
 open_public_places_buffered_400
-
-
-# In[44]:
-
 
 from shapely.ops import unary_union
 open_public_places_buffered_400_u = unary_union(open_public_places_buffered_400)
 open_public_places_buffered_1000_u = unary_union(open_public_places_buffered_1000)
 
-
-# In[45]:
-
-
 opb_400_u = gpd.GeoDataFrame({'geometry': open_public_places_buffered_400_u})
 opb_1000_u = gpd.GeoDataFrame({'geometry': open_public_places_buffered_1000_u})
 opb_1000_400_u = gpd.overlay(opb_1000_u,opb_400_u,how='difference')
-
-
-# In[46]:
 
 
 opb_400_u['id'] = opb_400_u.index
@@ -361,58 +171,18 @@ intersection_400_area = intersection_400_u.groupby('linkId')['intersection_400_u
 intersection_1000_area = intersection_1000_400_u.groupby('linkId')['intersection_1000_400_u_area'].sum()
 
 
-# In[47]:
-
-
 intersection_400_area=intersection_400_area.to_frame()
 intersection_1000_area=intersection_1000_area.to_frame()
 
 
-# In[48]:
-
-
 roads_central_district_alldata = roads_central_district.copy()
-
-
-# In[49]:
-
 
 roads_central_district_alldata = roads_central_district_alldata.merge(intersection_400_area, how='left', on='linkId').fillna(0)
 roads_central_district_alldata = roads_central_district_alldata.merge(intersection_1000_area, how='left', on='linkId').fillna(0)
 
-
-# In[50]:
-
-
-roads_central_district_alldata 
-
-
-# In[51]:
-
-
 roads_central_district_alldata .to_file('roads_central_district_alldata .geojson',driver = 'GeoJSON')
 
-
-# In[55]:
-
-
 all_data = roads_central_district_alldata.copy()
-
-
-# In[56]:
-
-
-all_data.to_file('all_data.geojson',driver = 'GeoJSON')
-
-
-# In[57]:
-
-
-all_data
-
-
-# In[61]:
-
 
 def sum_of_point_for_pedestrianisation(all_data):
     for i in range(len(all_data)):
@@ -456,20 +226,5 @@ def sum_of_point_for_pedestrianisation(all_data):
     print(all_data)
 
 
-# In[62]:
-
-
-sum_of_point_for_pedestrianisation(all_data)
-
-
-# In[64]:
-
-
 all_data = all_data.drop(['INT_8-9', 'LOAD_8-9','INT_18-19','LOAD_18-19','NO2','SO2','NOX','L_6-9','L_16-19','distance','nearest_x','nearest_y','NMHC','CO','HC','FC','CO2_TOTAL','NO2','SO2','NOX'], axis=1)
-
-
-# In[65]:
-
-
-all_data
 
